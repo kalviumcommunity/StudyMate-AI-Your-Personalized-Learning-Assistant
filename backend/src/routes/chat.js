@@ -21,9 +21,17 @@ r.post("/prompt-demo", async (req, res, next) => {
   const { mode, topic } = req.body;
   const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
 
+  const examples = {
+    one: [
+      { role: "user", content: "Explain overfitting in one line." },
+      { role: "assistant", content: "Overfitting memorizes training data, failing on new data." },
+    ],
+  };
+
   let messages = [{ role: "system", content: baseSystem }];
 
-  // zero-shot = no examples, just topic question
+  if (mode === "one") messages = messages.concat(examples.one);
+
   messages.push({ role: "user", content: `Explain: ${topic}. Keep it brief.` });
 
   const result = await chatComplete({ messages, temperature: 0.3 });
