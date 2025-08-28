@@ -15,7 +15,7 @@ r.post("/basic", async (req, res, next) => {
 
 r.post("/prompt-demo", async (req, res, next) => {
   try {
-    const { mode, topic, difficulty, temperature } = req.body;
+    const { mode, topic, difficulty, temperature, top_p } = req.body;
     const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
 
     const examples = {
@@ -45,10 +45,11 @@ r.post("/prompt-demo", async (req, res, next) => {
 
     messages.push({ role: "user", content: userPrompt });
 
-    // Temperature param ONLY
+    // Now we pass Top P as well
     const result = await chatComplete({
       messages,
-      temperature: temperature || 0.3,  // Add temperature here
+      temperature: temperature || 0.3,
+      top_p: top_p || 1, // Add Top P parameter here
     });
 
     res.json(result);
