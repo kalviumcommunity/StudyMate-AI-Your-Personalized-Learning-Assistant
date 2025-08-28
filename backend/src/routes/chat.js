@@ -15,7 +15,7 @@ r.post("/basic", async (req, res, next) => {
 
 r.post("/prompt-demo", async (req, res, next) => {
   try {
-    const { mode, topic, difficulty, temperature, top_p, top_k, max_tokens } = req.body;
+    const { mode, topic, difficulty, temperature, top_p, top_k, max_tokens, structured } = req.body;
     const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
 
     const examples = {
@@ -43,15 +43,21 @@ r.post("/prompt-demo", async (req, res, next) => {
       if (difficulty === "hard") userPrompt = `Explain ${topic} for experts with technical depth.`;
     }
 
+    // Ask for JSON if structured=true
+    if (structured) {
+      userPrompt += " Respond ONLY in valid JSON with keys: concept, summary.";
+    }
+
     messages.push({ role: "user", content: userPrompt });
 
-    // Now we pass Top K as well
+    // Structured output support
     const result = await chatComplete({
       messages,
       temperature: temperature || 0.3,
       top_p: top_p || 1,
-      top_k: top_k || 50, // Add Top K parameter here
-      max_tokens: max_tokens || 256,  // Default limit for response length
+      top_k: top_k || 50,
+      max_tokens: max_tokens || 256,
+      json: structured || false
     });
 
     res.json(result);
