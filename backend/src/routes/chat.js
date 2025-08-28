@@ -15,7 +15,7 @@ r.post("/basic", async (req, res, next) => {
 
 r.post("/prompt-demo", async (req, res, next) => {
   try {
-    const { mode, topic, difficulty, temperature, top_p, top_k } = req.body;
+    const { mode, topic, difficulty, temperature, top_p, top_k, max_tokens } = req.body;
     const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
 
     const examples = {
@@ -50,7 +50,8 @@ r.post("/prompt-demo", async (req, res, next) => {
       messages,
       temperature: temperature || 0.3,
       top_p: top_p || 1,
-      top_k: top_k || 50 // Add Top K parameter here
+      top_k: top_k || 50, // Add Top K parameter here
+      max_tokens: max_tokens || 256,  // Default limit for response length
     });
 
     res.json(result);
