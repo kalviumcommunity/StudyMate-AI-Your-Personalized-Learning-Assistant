@@ -15,7 +15,7 @@ r.post("/basic", async (req, res, next) => {
 
 r.post("/prompt-demo", async (req, res, next) => {
   try {
-    const { mode, topic, difficulty } = req.body; 
+    const { mode, topic, difficulty, temperature } = req.body;
     const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
 
     const examples = {
@@ -36,7 +36,6 @@ r.post("/prompt-demo", async (req, res, next) => {
     if (mode === "one") messages = messages.concat(examples.one);
     if (mode === "multi") messages = messages.concat(examples.multi);
 
-    // Dynamic Prompting: User sets difficulty level → prompt changes dynamically
     let userPrompt = `Explain: ${topic}. Keep it brief.`;
     if (mode === "dynamic") {
       if (difficulty === "easy") userPrompt = `Explain ${topic} like I'm 10 years old.`;
@@ -46,7 +45,12 @@ r.post("/prompt-demo", async (req, res, next) => {
 
     messages.push({ role: "user", content: userPrompt });
 
-    const result = await chatComplete({ messages, temperature: 0.3 });
+    // Temperature param ONLY
+    const result = await chatComplete({
+      messages,
+      temperature: temperature || 0.3,  // Add temperature here
+    });
+
     res.json(result);
   } catch (err) {
     next(err);
