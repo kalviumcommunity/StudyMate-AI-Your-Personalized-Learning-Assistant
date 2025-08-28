@@ -3,39 +3,42 @@ import { chatComplete } from "../llm.js";
 
 const r = Router();
 
-r.post("/basic", async (req, res, next) => {
+r.post("/prompt-demo", async (req, res, next) => {
   try {
-    const { system, user} = req.body;
-    const result = await chatComplete({
-      system,
-      user,
+    const { mode, topic } = req.body; // mode = zero | one | multi
+    const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
 
-    });
+    // All example sets in one place
+    const examples = {
+      one: [
+        { role: "user", content: "Explain overfitting in one line." },
+        { role: "assistant", content: "Overfitting memorizes training data, failing on new data." },
+      ],
+      multi: [
+        { role: "user", content: "Explain overfitting in one line." },
+        { role: "assistant", content: "Overfitting memorizes training data, failing on new data." },
+        { role: "user", content: "Explain underfitting in one line." },
+        { role: "assistant", content: "Underfitting fails to learn even simple patterns." },
+      ],
+    };
+
+    // Start with system message
+    let messages = [{ role: "system", content: baseSystem }];
+
+    // Add examples based on mode
+    if (mode === "one") messages = messages.concat(examples.one);
+    if (mode === "multi") messages = messages.concat(examples.multi);
+
+    // For zero-shot, no examples added — only topic question
+    messages.push({ role: "user", content: `Explain: ${topic}. Keep it brief.` });
+
+    // Call OpenAI model
+    const result = await chatComplete({ messages, temperature: 0.3 });
+
     res.json(result);
   } catch (err) {
     next(err);
   }
-});
-
-r.post("/prompt-demo", async (req, res, next) => {
-  const { mode, topic } = req.body;
-  const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
-
-  const examples = {
-    one: [
-      { role: "user", content: "Explain overfitting in one line." },
-      { role: "assistant", content: "Overfitting memorizes training data, failing on new data." },
-    ],
-  };
-
-  let messages = [{ role: "system", content: baseSystem }];
-
-  if (mode === "one") messages = messages.concat(examples.one);
-
-  messages.push({ role: "user", content: `Explain: ${topic}. Keep it brief.` });
-
-  const result = await chatComplete({ messages, temperature: 0.3 });
-  res.json(result);
 });
 
 export default r;
