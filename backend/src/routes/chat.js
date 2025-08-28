@@ -3,12 +3,21 @@ import { chatComplete } from "../llm.js";
 
 const r = Router();
 
+r.post("/basic", async (req, res, next) => {
+  try {
+    const { system, user } = req.body;
+    const result = await chatComplete({ system, user });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
 r.post("/prompt-demo", async (req, res, next) => {
   try {
-    const { mode, topic } = req.body; // mode = zero | one | multi
+    const { mode, topic, difficulty } = req.body; 
     const baseSystem = "You are StudyMate, explain clearly in 2 lines.";
 
-    // All example sets in one place
     const examples = {
       one: [
         { role: "user", content: "Explain overfitting in one line." },
@@ -22,19 +31,22 @@ r.post("/prompt-demo", async (req, res, next) => {
       ],
     };
 
-    // Start with system message
     let messages = [{ role: "system", content: baseSystem }];
 
-    // Add examples based on mode
     if (mode === "one") messages = messages.concat(examples.one);
     if (mode === "multi") messages = messages.concat(examples.multi);
 
-    // For zero-shot, no examples added — only topic question
-    messages.push({ role: "user", content: `Explain: ${topic}. Keep it brief.` });
+    // Dynamic Prompting: User sets difficulty level → prompt changes dynamically
+    let userPrompt = `Explain: ${topic}. Keep it brief.`;
+    if (mode === "dynamic") {
+      if (difficulty === "easy") userPrompt = `Explain ${topic} like I'm 10 years old.`;
+      if (difficulty === "medium") userPrompt = `Explain ${topic} for college students.`;
+      if (difficulty === "hard") userPrompt = `Explain ${topic} for experts with technical depth.`;
+    }
 
-    // Call OpenAI model
+    messages.push({ role: "user", content: userPrompt });
+
     const result = await chatComplete({ messages, temperature: 0.3 });
-
     res.json(result);
   } catch (err) {
     next(err);
